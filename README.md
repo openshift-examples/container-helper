@@ -1,4 +1,4 @@
-# Container helper
+# Container helper [![Docker Repository on Quay](https://quay.io/repository/openshift-examples/container-helper/status "Docker Repository on Quay")](https://quay.io/repository/openshift-examples/container-helper)
 
 ## Init
 
