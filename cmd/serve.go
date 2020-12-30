@@ -34,12 +34,10 @@ var serveCmd = &cobra.Command{
 	Long: `Starts a simple webserver
 	long description`,
 	Run: func(cmd *cobra.Command, args []string) {
-		// fmt.Println("serve called")
-		port = viper.GetInt("port")
-		log.Printf("serving on %d",port)
+		log.Printf("Serving on %d",viper.GetInt("port"))
 		http.HandleFunc("/", httpRootHandler)
 
-		err := http.ListenAndServe(":"+strconv.Itoa(port), nil)
+		err := http.ListenAndServe(fmt.Sprintf(":%d", viper.GetInt("port")), logRequest(http.DefaultServeMux))
 
 		if err != nil {
 			panic("ListenAndServe: " + err.Error())
@@ -57,7 +55,13 @@ func httpRootHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	fmt.Fprintln(w, viper.GetString("response"))
-	fmt.Println("Servicing request.")
+}
+
+func logRequest(handler http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		log.Printf("Request from %s %s %s\n", r.RemoteAddr, r.Method, r.URL)
+		handler.ServeHTTP(w, r)
+	})
 }
 
 func init() {
