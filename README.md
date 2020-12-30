@@ -22,3 +22,10 @@ go mod init container-helper
 
 go install container-helper
 ```
+
+## Resources
+
+  * https://carolynvanslyck.com/blog/2020/08/sting-of-the-viper/
+    https://github.com/carolynvs/stingoftheviper
+  * https://blog.container-solutions.com/golang-configuration-in-12-factor-applications
+  * https://github.com/openshift/origin/blob/master/examples/hello-openshift/hello_openshift.go

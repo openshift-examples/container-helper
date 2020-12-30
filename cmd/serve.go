@@ -19,11 +19,12 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 
-	// "net"
-	// "net/http"
-	// "os"
-	// "strconv"
+	"log"
+	"net"
+	"net/http"
+	"strconv"
 )
 
 // serveCmd represents the serve command
@@ -33,8 +34,30 @@ var serveCmd = &cobra.Command{
 	Long: `Starts a simple webserver
 	long description`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("serve called")
+		// fmt.Println("serve called")
+		port = viper.GetInt("port")
+		log.Printf("serving on %d",port)
+		http.HandleFunc("/", httpRootHandler)
+
+		err := http.ListenAndServe(":"+strconv.Itoa(port), nil)
+
+		if err != nil {
+			panic("ListenAndServe: " + err.Error())
+		}
 	},
+}
+
+func httpRootHandler(w http.ResponseWriter, r *http.Request) {
+
+	// Echo back the port the request was received on
+	// via a "request-port" header.
+	addr := r.Context().Value(http.LocalAddrContextKey).(net.Addr)
+	if tcpAddr, ok := addr.(*net.TCPAddr); ok {
+		w.Header().Set("x-request-port", strconv.Itoa(tcpAddr.Port))
+	}
+
+	fmt.Fprintln(w, viper.GetString("response"))
+	fmt.Println("Servicing request.")
 }
 
 func init() {
@@ -48,4 +71,16 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// serveCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+
+	serveCmd.Flags().IntP("port", "p", 8080, "port on which the server will listen")
+	serveCmd.Flags().StringP("response","r", "Hello OpenShift!", "response message")
+
+	viper.BindPFlag("port", serveCmd.Flags().Lookup("port"))
+	viper.BindPFlag("port", serveCmd.Flags().Lookup("response"))
+
+	viper.SetDefault("port", 8080)
+	viper.SetDefault("response", "Hello OpenShift!")
+
+	// viper.SetEnvPrefix("CT_SERVE") // Set the environment prefix to DEMO_*
+	viper.AutomaticEnv() // Automatically search for environment variables
 }
