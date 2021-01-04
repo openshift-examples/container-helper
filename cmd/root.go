@@ -73,6 +73,8 @@ func initConfig() {
 	} else {
 		// Search config in home directory with name ".container-helper" (without extension).
 		viper.AddConfigPath(".")
+		viper.AddConfigPath("/container-helper/")
+
 		viper.SetConfigName("container-helper")
 	}
 
