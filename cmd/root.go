@@ -92,7 +92,7 @@ func initConfig() {
 	}
 
 	for _, h := range config.Tcpchecks {
-		fmt.Printf("Load tcpcheck: %s", h.Name)
+		// fmt.Printf("Load tcpcheck: %s", h.Name)
 		tcpcheck.Add(h)
 	}
 }

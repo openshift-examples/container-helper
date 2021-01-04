@@ -161,11 +161,13 @@ func HttpCheck(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintln(w, viper.GetString("response"))
 	fmt.Fprintln(w)
 	fmt.Fprintf(w, "Namespace: %-15s\n", viper.GetString("namespace"))
+	hostname, _ := os.Hostname()
+	fmt.Fprintf(w, "Hostname : %-15s\n", hostname)
+
 	fmt.Fprintln(w, strings.Repeat("=", 55))
 	// fmt.Fprintln(w, "%s\n", )
 
 	// fmt.Fprintf(w, "%s\n")
-	hostname, _ := os.Hostname()
 	for _, h := range Checks {
 		var available string
 		switch h.Available {
@@ -178,8 +180,7 @@ func HttpCheck(w http.ResponseWriter, r *http.Request) {
 		default:
 			available = "UNKNOWN"
 		}
-		fmt.Fprintf(w, "%-15s -> %-20s : %8s\n",
-			hostname,
+		fmt.Fprintf(w, "Connection to %-20s : %8s\n",
 			fmt.Sprintf("%s (%s)", h.Name, net.JoinHostPort(h.Host, strconv.Itoa(h.Port))),
 			available,
 		)
