@@ -15,7 +15,7 @@ limitations under the License.
 */
 package main
 
-import "container-helper/cmd"
+import "github.com/openshift-examples/container-helper/cmd"
 
 func main() {
 	cmd.Execute()

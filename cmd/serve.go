@@ -1,22 +1,8 @@
-/*
-Copyright © 2020 NAME HERE <EMAIL ADDRESS>
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
 package cmd
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -25,6 +11,10 @@ import (
 	"net"
 	"net/http"
 	"strconv"
+
+	mux "github.com/gorilla/mux"
+	tcpcheck "github.com/openshift-examples/container-helper/pkg/tcpcheck"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 // serveCmd represents the serve command
@@ -34,15 +24,31 @@ var serveCmd = &cobra.Command{
 	Long: `Starts a simple webserver
 	long description`,
 	Run: func(cmd *cobra.Command, args []string) {
-		log.Printf("Serving on %d",viper.GetInt("port"))
-		http.HandleFunc("/", httpRootHandler)
+		log.Printf("Serving on %d", viper.GetInt("port"))
+		router := mux.NewRouter()
 
-		err := http.ListenAndServe(fmt.Sprintf(":%d", viper.GetInt("port")), logRequest(http.DefaultServeMux))
-
-		if err != nil {
-			panic("ListenAndServe: " + err.Error())
+		router.HandleFunc("/", httpRootHandler).Methods("GET")
+		router.HandleFunc("/metrics", metrics).Methods("GET")
+		router.HandleFunc("/check", tcpcheck.HttpCheck).Methods("GET")
+		router.HandleFunc("/v1/tcpchecks", tcpcheck.GetTcpChecks).Methods("GET")
+		// 	router.HandleFunc("/v1/tcpchecks/{uuid}", tcpcheck.getTcpCheckByUuid).Methods("GET")
+		// 	router.HandleFunc("/v1/tcpchecks", tcpcheck.createTcpCheck).Methods("POST")
+		// 	router.HandleFunc("/v1/tcpchecks/{uuid}", tcpcheck.deleteTcpCheck).Methods("DELETE")
+		srv := &http.Server{
+			Handler: logRequest(router),
+			Addr:    fmt.Sprintf(":%d", viper.GetInt("port")),
+			// Good practice: enforce timeouts for servers you create!
+			WriteTimeout: 15 * time.Second,
+			ReadTimeout:  15 * time.Second,
 		}
+		log.Fatal(srv.ListenAndServe())
+
 	},
+}
+
+// https://github.com/gorilla/mux/issues/444#issuecomment-459090877
+func metrics(w http.ResponseWriter, r *http.Request) {
+	promhttp.Handler().ServeHTTP(w, r)
 }
 
 func httpRootHandler(w http.ResponseWriter, r *http.Request) {
@@ -77,13 +83,16 @@ func init() {
 	// serveCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 
 	serveCmd.Flags().IntP("port", "p", 8080, "port on which the server will listen")
-	serveCmd.Flags().StringP("response","r", "Hello OpenShift!", "response message")
+	serveCmd.Flags().StringP("response", "r", "Hello OpenShift!", "response message")
+	serveCmd.Flags().StringP("namespace", "n", "Unknown", "Namespace")
 
 	viper.BindPFlag("port", serveCmd.Flags().Lookup("port"))
-	viper.BindPFlag("port", serveCmd.Flags().Lookup("response"))
+	viper.BindPFlag("response", serveCmd.Flags().Lookup("response"))
+	viper.BindPFlag("namespace", serveCmd.Flags().Lookup("namespace"))
 
 	viper.SetDefault("port", 8080)
 	viper.SetDefault("response", "Hello OpenShift!")
+	viper.SetDefault("namespace", "Unknown")
 
 	// viper.SetEnvPrefix("CT_SERVE") // Set the environment prefix to DEMO_*
 	viper.AutomaticEnv() // Automatically search for environment variables

@@ -29,3 +29,4 @@ go install container-helper
     https://github.com/carolynvs/stingoftheviper
   * https://blog.container-solutions.com/golang-configuration-in-12-factor-applications
   * https://github.com/openshift/origin/blob/master/examples/hello-openshift/hello_openshift.go
+  * https://www.alexedwards.net/blog/how-to-properly-parse-a-json-request-body

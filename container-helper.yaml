@@ -1,0 +1,7 @@
+---
+port: 1234
+
+tcpchecks:
+  - name: google
+    host: www.google.de
+    port: 80
