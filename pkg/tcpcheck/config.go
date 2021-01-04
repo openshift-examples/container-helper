@@ -5,8 +5,9 @@ import (
 	"time"
 )
 
+var Mutex = &sync.Mutex{}
+
 type Data struct {
-	mu        sync.Mutex
 	Uuid      string    `json:"uuid" validate:"nonzero"`
 	Name      string    `json:"uuid" validate:"nonzero"`
 	Host      string    `json:"host" validate:"nonzero"`

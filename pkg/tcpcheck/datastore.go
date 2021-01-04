@@ -27,7 +27,7 @@ func GetByUuid(uuid string) Data {
 	return Data{}
 }
 
-func Delete(uuid string) {
+func DeleteByUuid(uuid string) {
 	for idx, tc := range Checks {
 		if tc.Uuid == uuid {
 			Checks = append(Checks[:idx], Checks[idx+1:]...)
@@ -36,12 +36,9 @@ func Delete(uuid string) {
 	}
 }
 
-func UpdateAvailability(uuid string, available int) {
-	tc := GetByUuid(uuid)
-	tc.mu.Lock()
-	Delete(uuid)
-	tc.Available = available
-	tc.LastCheck = time.Now()
-	Checks = append(Checks, tc)
-	tc.mu.Unlock()
+func UpdateAvailability(idx int, available int) {
+	Mutex.Lock()
+	Checks[idx].Available = available
+	Checks[idx].LastCheck = time.Now()
+	Mutex.Unlock()
 }
